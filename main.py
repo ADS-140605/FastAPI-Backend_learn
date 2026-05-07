@@ -1,11 +1,23 @@
 from fastapi import FastAPI
-
+import json
 app = FastAPI()
 
-@app.get("/")
-async def base():
-    return {"message": "Hello World"}
+def load_data():
+    with open("patients.json", "r") as f:
+            data = json.load(f)
+    return {"patients": list(data.values())}
 
-@app.get("/hello")
-async def hello(name: str):
-    return {"message": f"Hello {name}!"}
+
+@app.get("/")
+def base():
+    return {"message": "Patient management system API is running!"}
+
+@app.get("/about")
+def about():
+    return {"message": "This is a simple patient management system API."}
+
+@app.get("/patients")
+def get_patients():
+    return load_data()
+
+
