@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Path
+from fastapi import FastAPI, HTTPException, Path ,Query
 import json
 app = FastAPI()
 
@@ -18,7 +18,8 @@ def about():
 
 @app.get("/patients")
 def get_patients():
-    return load_data()
+    data= load_data()
+    return {"message": "List of patients", "patients": data}
 
 
 
@@ -30,4 +31,13 @@ def get_patient(patient_id: str =Path(..., description="The ID of the patient to
             return {"message": "Patient found", "patient": data[patient_id]}
     raise HTTPException (status_code=404, detail="Patient not found")
 
-
+@app.get("/sort")
+def sort_patients(sort_by: str = Query(..., description="The field to sort patients by('bmi', 'age' ,'height')", example="age"),order:str = Query("asc", description="The order to sort patients by('asc' for ascending, 'desc' for descending)", example="asc")):
+    data = load_data()
+    if sort_by not in ['bmi', 'age', 'height']:
+        raise HTTPException(status_code=400, detail="Invalid sort field. Must be 'bmi', 'age', or 'height'.")
+    if order not in ['asc', 'desc']:
+        raise HTTPException(status_code=400, detail="Invalid sort order. Must be 'asc' or 'desc'.")
+    
+    sorted_patients = sorted(data.items(), key=lambda x: x[1][sort_by], reverse=(order == "desc"))
+    return {"message": f"Patients sorted by {sort_by} in {order} order", "patients": dict(sorted_patients)}
