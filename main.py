@@ -1,12 +1,39 @@
 from fastapi import FastAPI, HTTPException, Path ,Query
+from pydantic import BaseModel,Field,computed_field
+from typing import Annotated, Literal
 import json
+class Patient(BaseModel):
+    id: Annotated[str, Field(..., description="The ID of the patient", example="P001")]
+    name: Annotated[str, Field(..., description="The name of the patient", example="John Doe")]
+    age: Annotated[int, Field(...,gt=0,lt=150, description="The age of the patient", example=30)]
+    height: Annotated[float, Field(...,gt=0, description="The height of the patient", example=175.5)]
+    weight: Annotated[float, Field(...,gt=0, description="The weight of the patient", example=70.0)]
+    gender: Annotated[Literal["Male", "Female","Other"], Field(..., description="The gender of the patient", example="Male")]
+    @computed_field
+    @property
+    def bmi(self) -> float:
+        return self.weight / ((self.height / 100) ** 2)\
+    @computed_field
+    @property
+    def verdict(self)-> str:
+        if self.bmi < 18.5:
+            return "Underweight"
+        elif 18.5 <= self.bmi < 25:
+            return "Normal weight"
+        elif 25 <= self.bmi < 30:
+            return "Overweight"
+        else:
+            return "Obese"
+        
 app = FastAPI()
 
 def load_data():
     with open("patients.json", "r") as f:
             data = json.load(f)
     return data
-
+def save_data(data):
+    with open("patients.json", "w") as f:
+        json.dump(data, f)
 
 @app.get("/")
 def base():
@@ -41,3 +68,12 @@ def sort_patients(sort_by: str = Query(..., description="The field to sort patie
     
     sorted_patients = sorted(data.items(), key=lambda x: x[1][sort_by], reverse=(order == "desc"))
     return {"message": f"Patients sorted by {sort_by} in {order} order", "patients": dict(sorted_patients)}
+
+@app.post("/new_patient")
+def add_patient(patient: Patient):
+    data = load_data()
+    if patient.id in data:
+        raise HTTPException(status_code=400, detail="Patient with this ID already exists.")
+    data[patient.id] = patient.model_dump(exclude={'id'})
+    save_data(data)
+    return {"message": "New patient added successfully", "patient": patient.dict()}
