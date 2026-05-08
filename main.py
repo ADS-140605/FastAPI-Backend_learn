@@ -1,7 +1,10 @@
 from fastapi import FastAPI, HTTPException, Path ,Query
-from pydantic import BaseModel,Field,computed_field
+from fastapi.responses import JSONResponse
 from typing import Annotated, Literal
 import json
+from pydantic import BaseModel
+from pydantic import Field,computed_field
+
 class Patient(BaseModel):
     id: Annotated[str, Field(..., description="The ID of the patient", example="P001")]
     name: Annotated[str, Field(..., description="The name of the patient", example="John Doe")]
@@ -12,7 +15,7 @@ class Patient(BaseModel):
     @computed_field
     @property
     def bmi(self) -> float:
-        return self.weight / ((self.height / 100) ** 2)\
+        return self.weight / ((self.height / 100) ** 2)
     @computed_field
     @property
     def verdict(self)-> str:
@@ -76,4 +79,4 @@ def add_patient(patient: Patient):
         raise HTTPException(status_code=400, detail="Patient with this ID already exists.")
     data[patient.id] = patient.model_dump(exclude={'id'})
     save_data(data)
-    return {"message": "New patient added successfully", "patient": patient.dict()}
+    return JSONResponse(status_code=201, content={"message": "Patient added successfully", "patient": patient.dict()})
