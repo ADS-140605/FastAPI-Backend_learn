@@ -80,3 +80,13 @@ def add_patient(patient: Patient):
     data[patient.id] = patient.model_dump(exclude={'id'})
     save_data(data)
     return JSONResponse(status_code=201, content={"message": "Patient added successfully", "patient": patient.dict()})
+
+@app.delete("/patients/{patient_id}")
+def delete_patient(patient_id: str = Path(..., description="The ID of the patient to delete", example="P001")):
+    data = load_data()
+    if patient_id not in data:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    del data[patient_id]
+    save_data(data)
+    return {"message": "Patient deleted successfully"}
+
