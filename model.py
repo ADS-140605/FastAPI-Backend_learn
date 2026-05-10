@@ -1,85 +1,94 @@
 import pandas as pd
-
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error,r2_score
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+from sklearn.preprocessing import LabelEncoder
+from joblib import dump
 
 # Load dataset
-data=pd.read_csv(
-    "spotify-2023.csv",
-    encoding="latin-1"
+data = pd.read_csv("spotify-2023.csv", encoding="latin-1")
+
+def clean_numeric(val):
+    if isinstance(val, str):
+        return val.replace(",", "")
+    return val
+
+# Clean problematic numeric columns
+cols_to_fix = ["streams", "in_deezer_playlists", "in_shazam_charts"]
+for col in cols_to_fix:
+    data[col] = data[col].apply(clean_numeric)
+    data[col] = pd.to_numeric(data[col], errors="coerce")
+
+# Drop rows where target 'streams' is NaN
+data = data.dropna(subset=["streams"])
+
+# Feature Engineering: Total Playlists
+data["total_playlists"] = (
+    data["in_spotify_playlists"] + 
+    data["in_apple_playlists"] + 
+    data["in_deezer_playlists"].fillna(0)
 )
 
-# Remove commas from all columns
-for col in data.columns:
-    data[col]=data[col].astype(str).str.replace(",","")
+# Encoding categorical features
+le_key = LabelEncoder()
+data["key"] = le_key.fit_transform(data["key"].astype(str))
 
-# Convert numeric columns
-for col in data.columns:
-    data[col]=pd.to_numeric(
-        data[col],
-        errors="coerce"
-    )
+le_mode = LabelEncoder()
+data["mode"] = le_mode.fit_transform(data["mode"].astype(str))
 
-# Reload categorical columns from original dataset
-raw=pd.read_csv(
-    "spotify-2023.csv",
-    encoding="latin-1"
-)
-
-cat_cols=[
-    "track_name",
-    "artist(s)_name",
-    "key",
-    "mode"
+# Select features
+features = [
+    "artist_count", "released_year", "released_month",
+    "in_spotify_playlists", "in_spotify_charts",
+    "in_apple_playlists", "in_apple_charts",
+    "in_deezer_playlists", "in_deezer_charts",
+    "in_shazam_charts", "total_playlists",
+    "bpm", "key", "mode",
+    "danceability_%", "valence_%", "energy_%",
+    "acousticness_%", "instrumentalness_%", "liveness_%", "speechiness_%"
 ]
 
-for col in cat_cols:
-    data[col]=raw[col]
+X = data[features]
+y = data["streams"]
 
-# Drop rows with missing values
-data=data.dropna()
-
-# Remove text-heavy columns
-data=data.drop([
-    "track_name",
-    "artist(s)_name"
-],axis=1)
-
-# Encode categorical columns
-data=pd.get_dummies(
-    data,
-    columns=["key","mode"],
-    drop_first=True
+# Split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
 )
 
-# Features and target
-X=data.drop("streams",axis=1)
-y=data["streams"]
-
-# Train test split
-X_train,X_test,y_train,y_test=train_test_split(
-    X,
-    y,
-    test_size=0.2,
+# Model: HistGradientBoostingRegressor is often better than Random Forest
+# and natively handles NaN/categorical if we specify them (though we pre-encoded)
+model = HistGradientBoostingRegressor(
+    max_iter=200, 
+    learning_rate=0.05, 
+    max_depth=5, 
     random_state=42
 )
 
-# Model
-model=LinearRegression()
+# Train
+model.fit(X_train, y_train)
 
-# Train model
-model.fit(X_train,y_train)
-
-# Predictions
-y_pred=model.predict(X_test)
+# Predict
+y_pred = model.predict(X_test)
 
 # Metrics
-mse=mean_squared_error(y_test,y_pred)
-r2=r2_score(y_test,y_pred)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+mae = mean_absolute_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
 
-print("Mean Squared Error:",mse)
-print("R2 Score:",r2)
+print(f"Final Model Results:")
+print(f"RMSE: {rmse:,.0f}")
+print(f"MAE:  {mae:,.0f}")
+print(f"R2:   {r2:.4f}")
 
-from joblib import dump
-dump(model,"spotify_model.joblib")
+# Save model and encoders
+artifacts = {
+    "model": model,
+    "le_key": le_key,
+    "le_mode": le_mode,
+    "features": features
+}
+dump(artifacts, "spotify_model.joblib")
+print("\n'Perfect' model and encoders saved to 'spotify_model.joblib'")
