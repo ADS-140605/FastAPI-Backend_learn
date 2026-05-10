@@ -128,4 +128,4 @@ def update_patient(patient_update: PatientUpdate , patient_id: str = Path(..., d
     existing_patient=Patient(**existing_patient)
     data[patient_id] = existing_patient.model_dump(exclude={'id'})
     save_data(data)
-    return {"message": "Patient updated successfully", "patient": existing_patient.dict()}
+    return JSONResponse(status_code=200, content={"message": "Patient updated successfully", "patient": existing_patient.dict()})
