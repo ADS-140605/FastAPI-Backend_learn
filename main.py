@@ -156,3 +156,4 @@ def update_patient(
             "patient": validated_patient.model_dump()
         }
     )
+
