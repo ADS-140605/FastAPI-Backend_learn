@@ -90,3 +90,12 @@ def delete_patient(patient_id: str = Path(..., description="The ID of the patien
     save_data(data)
     return {"message": "Patient deleted successfully"}
 
+@app.put("/patients/{patient_id}")
+def update_patient(patient_id: str = Path(..., description="The ID of the patient to
+    update", example="P001"), updated_patient: Patient = None):
+        data = load_data()
+        if patient_id not in data:
+            raise HTTPException(status_code=404, detail="Patient not found")
+        data[patient_id] = updated_patient.model_dump(exclude={'id'})
+        save_data(data)
+        return {"message": "Patient updated successfully", "patient": updated_patient.dict()}
