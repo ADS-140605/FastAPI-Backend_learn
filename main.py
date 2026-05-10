@@ -113,19 +113,46 @@ def delete_patient(patient_id: str = Path(..., description="The ID of the patien
 
 
 
-@app.put("/patients/{patient_id}")
-def update_patient(patient_update: PatientUpdate , patient_id: str = Path(..., description="The ID of the patient to update", example="P001")):
+@app.put("/update_patient/{patient_id}")
+def update_patient(
+    patient_update: PatientUpdate,
+    patient_id: str = Path(
+        ...,
+        description="The ID of the patient to update"
+    )
+):
     data = load_data()
-    patient_id = patient_update.id
+
     if patient_id not in data:
-        raise HTTPException(status_code=404, detail="Patient not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Patient not found"
+        )
+
     existing_patient = data[patient_id]
-    updated_patient = patient_update.model_dump(exclude_unset=True)
-    
+
+    updated_patient = patient_update.model_dump(
+        exclude_unset=True,
+        exclude={"id"}
+    )
+
     for key, value in updated_patient.items():
         existing_patient[key] = value
-    existing_patient['id'] = patient_id
-    existing_patient=Patient(**existing_patient)
-    data[patient_id] = existing_patient.model_dump(exclude={'id'})
+
+    existing_patient["id"] = patient_id
+
+    validated_patient = Patient(**existing_patient)
+
+    data[patient_id] = validated_patient.model_dump(
+        exclude={"id"}
+    )
+
     save_data(data)
-    return JSONResponse(status_code=200, content={"message": "Patient updated successfully", "patient": existing_patient.dict()})
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "message": "Patient updated successfully",
+            "patient": validated_patient.model_dump()
+        }
+    )
