@@ -1,18 +1,34 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from joblib import load
 import pandas as pd
 import uvicorn
 from typing import Optional
+import numpy as np
 
 app = FastAPI()
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Load trained artifacts
-artifacts = load("spotify_model.joblib")
-model = artifacts["model"]
-le_key = artifacts["le_key"]
-le_mode = artifacts["le_mode"]
-features = artifacts["features"]
+try:
+    artifacts = load("spotify_model.joblib")
+    model = artifacts["model"]
+    le_key = artifacts["le_key"]
+    le_mode = artifacts["le_mode"]
+    features = artifacts["features"]
+except Exception as e:
+    print(f"Error loading model: {e}")
+    # Provide placeholders if loading fails during development
+    model = None
 
 # Comprehensive Request schema matching the perfected model
 class SongFeatures(BaseModel):
@@ -41,11 +57,14 @@ class SongFeatures(BaseModel):
 def home():
     return {
         "message": "Spotify Streams Prediction API (Perfected Model)",
-        "features_required": features
+        "features_required": features if 'features' in locals() else []
     }
 
 @app.post("/predict")
 def predict(song: SongFeatures):
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+
     # Prepare input data
     input_data = {
         "artist_count": song.artist_count,
@@ -76,27 +95,40 @@ def predict(song: SongFeatures):
     )
 
     # Encode categorical features
-    # Note: Use try-except or check classes if unknown labels might be sent
     try:
-        input_data["key"] = le_key.transform([song.key])[0]
-    except:
-        input_data["key"] = le_key.transform(["Unknown"])[0]
+        if song.key in le_key.classes_:
+            input_data["key"] = le_key.transform([song.key])[0]
+        else:
+            # If key not found, use the first class or nan if it exists
+            default_key = le_key.classes_[0]
+            for c in le_key.classes_:
+                if pd.isna(c):
+                    default_key = c
+                    break
+            input_data["key"] = le_key.transform([default_key])[0]
+    except Exception as e:
+         raise HTTPException(status_code=400, detail=f"Error encoding key: {str(e)}")
 
     try:
-        input_data["mode"] = le_mode.transform([song.mode])[0]
-    except:
-        # Default to most common if unknown
-        input_data["mode"] = le_mode.transform(["Major"])[0]
+        if song.mode in le_mode.classes_:
+            input_data["mode"] = le_mode.transform([song.mode])[0]
+        else:
+            input_data["mode"] = le_mode.transform([le_mode.classes_[0]])[0]
+    except Exception as e:
+         raise HTTPException(status_code=400, detail=f"Error encoding mode: {str(e)}")
 
     # Convert to DataFrame in the correct feature order
-    df = pd.DataFrame([input_data])[features]
+    df = pd.DataFrame([input_data])
+    df = df.reindex(columns=features)
 
-    prediction = model.predict(df)
-
-    return {
-        "predicted_streams": int(prediction[0]),
-        "status": "success"
-    }
+    try:
+        prediction = model.predict(df)
+        return {
+            "predicted_streams": int(prediction[0]),
+            "status": "success"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
