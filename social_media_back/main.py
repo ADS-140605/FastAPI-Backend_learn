@@ -1,14 +1,17 @@
 from fastapi import FastAPI
+from fastapi.params import Body
 app = FastAPI()
 
 @app.get("/")
-async def root():
+def root():
     return {"message":"Helloooooooooooooooo"}
 
 @app.get("/posts")
-async def get_posts():
+def get_posts():
     return {"data":"These are yout posts"}
 
-@app.post("/createposte")
-async def create_posts():
+@app.post("/createpost")
+def create_posts(data : dict = Body(...)):
+    print(data)
     return {"message":"post created"}
+
