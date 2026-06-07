@@ -2,3 +2,6 @@ env/
 __pycache__/
 .env
 .vscode/
+.postman/
+postman/
+spotify_model.joblib
