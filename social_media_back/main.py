@@ -9,3 +9,6 @@ async def root():
 async def get_posts():
     return {"data":"These are yout posts"}
 
+@app.post("/createposte")
+async def create_posts():
+    return {"message":"post created"}
