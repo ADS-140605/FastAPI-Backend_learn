@@ -2,8 +2,18 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi.params import Body
 from pydantic import BaseModel
+
+import json
 app = FastAPI()
 
+def load_data():
+    with open("social_media_dummy.json","r",encoding="utf-8") as file:
+        data = json.load(file)
+
+    return data
+def dump_data(data):
+    with open("social_media_dummy.json","w",encoding="utf-8") as file:
+        json.dump(data, file, indent=4, ensure_ascii=False)
 
 class Post(BaseModel):
     title: str
@@ -18,10 +28,13 @@ def root():
 
 @app.get("/posts")
 def get_posts():
-    return {"data":"These are yout posts"}
+    data=load_data()
+    return {"data":data}
 
 @app.post("/createpost")
 def create_posts(data : Post):
-    print(data.model_dump())
-    return {"new_post":"created"}
+    orig=load_data()
+    orig.append(data.model_dump())
+    dump_data(orig)
+    return {"DATA":data}
 
