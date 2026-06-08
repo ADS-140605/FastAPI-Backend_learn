@@ -3,132 +3,155 @@
         "title": "Getting Started with Python",
         "content": "Day 1",
         "published": true,
-        "rating": 4.5
+        "rating": 4.5,
+        "id": "000"
     },
     {
         "title": "FastAPI CRUD Operations",
         "content": "Learning GET POST PUT DELETE",
         "published": false,
-        "rating": 3.8
+        "rating": 3.8,
+        "id": "001"
     },
     {
         "title": "",
         "content": "",
         "published": true,
-        "rating": null
+        "rating": 0,
+        "id": "002"
     },
     {
         "title": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "content": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
         "published": true,
-        "rating": 5.0
+        "rating": 5.0,
+        "id": "003"
     },
     {
         "title": "@@@###$$$%%%^^^",
         "content": "!<>?:{}|~`",
         "published": false,
-        "rating": 2.5
+        "rating": 2.5,
+        "id": "004"
     },
     {
         "title": "नमस्ते 🚀 Python",
         "content": "Testing unicode characters 測試 テスト",
         "published": true,
-        "rating": 4.7
+        "rating": 4.7,
+        "id": "005"
     },
     {
         "title": "No Rating Post",
         "content": "This post has no rating",
         "published": true,
-        "rating": null
+        "rating": 0,
+        "id": "006"
     },
     {
         "title": "Minimum Rating",
         "content": "Lowest possible rating",
         "published": false,
-        "rating": 0
+        "rating": 0,
+        "id": "007"
     },
     {
         "title": "Maximum Rating",
         "content": "Highest possible rating",
         "published": true,
-        "rating": 5
+        "rating": 5,
+        "id": "008"
     },
     {
         "title": "Negative Rating Case",
         "content": "Should validation fail?",
         "published": true,
-        "rating": -1
+        "rating": -1,
+        "id": "009"
     },
     {
         "title": "Too High Rating",
         "content": "Another validation test",
         "published": false,
-        "rating": 10
+        "rating": 10,
+        "id": "010"
     },
     {
         "title": "Integer Rating",
         "content": "Rating as integer",
         "published": true,
-        "rating": 4
+        "rating": 4,
+        "id": "011"
     },
     {
         "title": "Published False",
         "content": "Testing false value",
         "published": false,
-        "rating": 1.2
+        "rating": 1.2,
+        "id": "012"
     },
     {
         "title": "Null Content Test",
-        "content": null,
+        "content": 0,
         "published": true,
-        "rating": 3.3
+        "rating": 3.3,
+        "id": "013"
     },
     {
         "title": "Missing Rating Field",
         "content": "Simulating missing optional field",
-        "published": true
+        "published": true,
+        "rating": 0,
+        "id": "014"
     },
     {
         "title": 12345,
         "content": 67890,
         "published": true,
-        "rating": 4.1
+        "rating": 4.1,
+        "id": "015"
     },
     {
         "title": "'; DROP TABLE posts; --",
         "content": "SQL Injection payload",
         "published": false,
-        "rating": 1.0
+        "rating": 1.0,
+        "id": "016"
     },
     {
         "title": "<script>alert('XSS')</script>",
         "content": "<h1>Injected HTML</h1>",
         "published": true,
-        "rating": 2.2
+        "rating": 2.2,
+        "id": "017"
     },
     {
         "title": "     ",
         "content": "\n\n\t",
         "published": false,
-        "rating": null
+        "rating": 0,
+        "id": "018"
     },
     {
         "title": "Duplicate Post",
         "content": "Same content",
         "published": true,
-        "rating": 4.0
+        "rating": 4.0,
+        "id": "019"
     },
     {
         "title": "Duplicate Post",
         "content": "Same content",
         "published": true,
-        "rating": 4.0
+        "rating": 4.0,
+        "id": "020"
     },
     {
         "title": "Big Numbers",
         "content": "1000000000000000000",
         "published": true,
-        "rating": 4.9
+        "rating": 4.9,
+        "id": "021"
     },
     {
         "title": [
@@ -140,12 +163,14 @@
             "nested": "dict"
         },
         "published": "yes",
-        "rating": "five"
+        "rating": "five",
+        "id": "022"
     },
     {
         "title": "Heloooooooooooooooooooooooo",
         "content": "Day 1",
         "published": true,
-        "rating": null
+        "rating": 0,
+        "id": "023"
     }
 ]

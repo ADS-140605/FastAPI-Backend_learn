@@ -22,6 +22,12 @@ def add_col(data,col_name):
 def dump_data(data):
     with open("social_media_dummy.json","w",encoding="utf-8") as file:
         json.dump(data, file, indent=4, ensure_ascii=False)
+def del_col(data,col_name):
+    df=pd.DataFrame(data)
+    df = df.drop(columns=col_name)
+    data=df.to_dict(orient="records")
+    return data
+
 
 class Post(BaseModel):
     title: str
@@ -37,13 +43,14 @@ def root():
 @app.get("/posts")
 def get_posts():
     data=load_data()
-    data=add_id_col(data)
+    #data=del_col(data,["id"])
+    #data=add_col(data,"id")
+    #dump_data(data)
     return {"data":data}
 
 @app.post("/createpost")
 def create_posts(data : Post):
     original_data=load_data()
     original_data.append(data.model_dump())
-    
     dump_data(original_data)
     return {"DATA":data}
