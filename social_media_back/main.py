@@ -33,8 +33,8 @@ def get_posts():
 
 @app.post("/createpost")
 def create_posts(data : Post):
-    orig=load_data()
-    orig.append(data.model_dump())
-    dump_data(orig)
+    original_data=load_data()
+    original_data.append(data.model_dump())
+    dump_data(original_data)
     return {"DATA":data}
 
