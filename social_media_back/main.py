@@ -1,9 +1,11 @@
 from typing import Optional
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.params import Body
 from pydantic import BaseModel
 import pandas as pd
 import json
+
+from requests import status_codes
 app = FastAPI()
 
 def load_data():
@@ -63,3 +65,13 @@ def retrieve_data(id):
 
     return {"message": "Post not found"}
 
+@app.delete("/delete/{id}")
+def delete_data(id):
+    data=load_data()
+    for post in data:
+        if post.get("id") == id:
+            data.remove(post)
+            dump_data(data)
+            raise HTTPException(status_code=status_codes.HTTP_204_NO_CONTENT, detail="Post deleted successfully")
+
+    return {"message": "Post not found"}
