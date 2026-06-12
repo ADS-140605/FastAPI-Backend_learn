@@ -88,11 +88,14 @@ def create_posts(data : Post):
     original_data.append(data.model_dump())
     dump_data(original_data)
     return {"DATA":data}
+
+
 @app.get("/posts/{id}")
-def retrieve_data(id):
-    data=load_data()
+def retrieve_data(id:int):
+    data=load_data_db()
     for post in data:
-        if post.get("id") == id:
+        print(post['id'],post['id']==id)
+        if post['id']== id:
             return post
 
     return {"message": "Post not found"}
