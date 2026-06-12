@@ -4,9 +4,30 @@ from fastapi.params import Body
 from pydantic import BaseModel
 import pandas as pd
 import json
-
+from database import connect as db_connect
 from requests import status_codes
+
+
+
+
 app = FastAPI()
+
+def load_data_db():
+    cursor = db_connect()
+    cursor.execute("SELECT * FROM posts")
+    data = cursor.fetchall()
+    return data
+while True:
+    try:
+        data = load_data_db()
+        break
+    except Exception as e:
+        print(f"Error connecting to the database: {e}")
+        print("Retrying in 5 seconds...")
+        import time
+        time.sleep(5)
+
+
 
 def load_data():
     with open("social_media_dummy.json","r",encoding="utf-8") as file:
