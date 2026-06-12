@@ -9,14 +9,17 @@ from requests import status_codes
 
 
 
-
 app = FastAPI()
+
+
 
 def load_data_db():
     cursor = db_connect()
     cursor.execute("SELECT * FROM posts")
     data = cursor.fetchall()
     return data
+
+
 while True:
     try:
         data = load_data_db()
@@ -45,11 +48,15 @@ def add_col(data,col_name):
 def dump_data(data):
     with open("social_media_dummy.json","w",encoding="utf-8") as file:
         json.dump(data, file, indent=4, ensure_ascii=False)
+
+
 def del_col(data,col_name):
     df=pd.DataFrame(data)
     df = df.drop(columns=col_name)
     data=df.to_dict(orient="records")
     return data
+
+
 class Update(BaseModel):
     title: Optional[str]=None
     content: Optional[str]=None
@@ -69,7 +76,7 @@ def root():
 
 @app.get("/posts")
 def get_posts():
-    data=load_data()
+    data=load_data_db()
     #data=del_col(data,["id"])
     #data=add_col(data,"id")
     #dump_data(data)
