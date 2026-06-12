@@ -25,3 +25,6 @@ CREATE TABLE IF NOT EXISTS posts(
 conn.commit()
 
 print("Table created successfully")
+
+cursor.close()
+conn.close()
