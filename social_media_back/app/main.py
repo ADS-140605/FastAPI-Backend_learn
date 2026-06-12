@@ -70,9 +70,15 @@ class Post(BaseModel):
     rating : Optional[int]=None
 
 
+
+
 @app.get("/")
 def root():
     return {"message":"Helloooooooooooooooo"}
+
+
+
+
 
 @app.get("/posts")
 def get_posts():
@@ -82,12 +88,20 @@ def get_posts():
     #dump_data(data)
     return {"data":data}
 
+
+
+
+
 @app.post("/createpost")
 def create_posts(data : Post):
     original_data=load_data()
     original_data.append(data.model_dump())
     dump_data(original_data)
     return {"DATA":data}
+
+
+
+
 
 
 @app.get("/posts/{id}")
@@ -100,6 +114,11 @@ def retrieve_data(id:int):
 
     return {"message": "Post not found"}
 
+
+
+
+
+
 @app.delete("/delete/{id}")
 def delete_data(id):
     data=load_data()
@@ -110,6 +129,10 @@ def delete_data(id):
             raise HTTPException(status_code=status_codes.HTTP_204_NO_CONTENT, detail="Post deleted successfully")
 
     return {"message": "Post not found"}
+
+
+
+
 
 @app.put("/posts/{id}")
 def update_data(id,update:Update):
