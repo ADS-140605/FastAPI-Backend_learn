@@ -113,7 +113,6 @@ def create_posts(data : Post):
     # original_data=load_data()
     # original_data.append(data.model_dump())
     # dump_data(original_data)
-    data=data.model_dump()
     cursor.execute("""INSERT INTO posts (
                    title,
                    content,
