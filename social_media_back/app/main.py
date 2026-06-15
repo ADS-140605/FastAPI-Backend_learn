@@ -9,6 +9,8 @@ import os
 import psycopg
 from dotenv import load_dotenv
 from psycopg.rows import dict_row
+from fastapi import APIRouter, status
+from fastapi.responses import JSONResponse
 
 load_dotenv()
 
@@ -137,14 +139,14 @@ def create_posts(data : Post):
 
 @app.get("/posts/{id}")
 def retrieve_data(id:int):
-    data=load_data_db()
-    for post in data:
-        print(post['id'],post['id']==id)
-        if post['id']== id:
-            return post
-
-    return {"message": "Post not found"}
-
+    cursor.execute("""SELECT * FROM posts WHERE id = %s""",(str(id),))
+    post=cursor.fetchone()
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="post not found"
+        )
+    return post
 
 
 
