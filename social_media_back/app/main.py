@@ -4,17 +4,30 @@ from fastapi.params import Body
 from pydantic import BaseModel
 import pandas as pd
 import json
-from database import connect as db_connect
 from requests import status_codes
+import os
+import psycopg
+from dotenv import load_dotenv
+from psycopg.rows import dict_row
+
+load_dotenv()
+
+conn = psycopg.connect(
+        host=os.getenv("DB_HOST"),
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        port=os.getenv("DB_PORT"),
+        row_factory=dict_row
+    )
 
 
 
 app = FastAPI()
 
-
+cursor = conn.cursor()
 
 def load_data_db():
-    cursor = db_connect()
     cursor.execute("SELECT * FROM posts")
     data = cursor.fetchall()
     return data
@@ -83,6 +96,9 @@ def root():
 @app.get("/posts")
 def get_posts():
     data=load_data_db()
+    cursor.execute("""SELECT * FROM posts""")
+    data=cursor.fetchall()
+    print(data)
     #data=del_col(data,["id"])
     #data=add_col(data,"id")
     #dump_data(data)
@@ -94,10 +110,26 @@ def get_posts():
 
 @app.post("/createpost")
 def create_posts(data : Post):
-    original_data=load_data()
-    original_data.append(data.model_dump())
-    dump_data(original_data)
-    return {"DATA":data}
+    # original_data=load_data()
+    # original_data.append(data.model_dump())
+    # dump_data(original_data)
+    data=data.model_dump()
+    cursor.execute("""INSERT INTO posts (
+                   title,
+                   content,
+                   published,    
+                   rating
+                   ) 
+
+                   VALUES 
+
+                   (
+                   %s,%s,%s,%s
+                   ) RETURNING *
+                   """,(data.title, data.content, data.published, data.rating))
+    new_post=cursor.fetchone()
+    conn.commit()
+    return {"data": new_post}
 
 
 
