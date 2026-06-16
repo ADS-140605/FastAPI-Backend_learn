@@ -29,13 +29,10 @@ app = FastAPI()
 cursor = conn.cursor()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE_PATH = os.path.join(BASE_DIR, "social_media_dummy.json")
-
 def load_data_db():
     cursor.execute("SELECT * FROM posts")
     data = cursor.fetchall()
     return data
-
-
 while True:
     try:
         data = load_data_db()
@@ -47,38 +44,11 @@ while True:
         time.sleep(5)
 
 
-
-def load_data():
-    with open(DATA_FILE_PATH,"r",encoding="utf-8") as file:
-        data = json.load(file)
-    return data
-
-def add_col(data,col_name):
-    df=pd.DataFrame(data)
-    df = df.fillna(value=0)
-    df[col_name]=df.get(col_name)
-    df["id"] = [f"{i:03}" for i in range(len(df))]
-    data=df.to_dict(orient="records")
-    return data
-
-def dump_data(data):
-    with open(DATA_FILE_PATH,"w",encoding="utf-8") as file:
-        json.dump(data, file, indent=4, ensure_ascii=False)
-
-
-def del_col(data,col_name):
-    df=pd.DataFrame(data)
-    df = df.drop(columns=col_name)
-    data=df.to_dict(orient="records")
-    return data
-
-
 class Update(BaseModel):
     title: Optional[str]=None
     content: Optional[str]=None
     published: Optional[bool]=None
     rating : Optional[int]=None
-
 class Post(BaseModel):
     title: str
     content: str
@@ -88,13 +58,11 @@ class Post(BaseModel):
 
 
 
+
+
 @app.get("/")
 def root():
     return {"message":"Helloooooooooooooooo"}
-
-
-
-
 
 @app.get("/posts")
 def get_posts():
@@ -108,8 +76,16 @@ def get_posts():
     return {"data":data}
 
 
-
-
+@app.get("/posts/{id}")
+def retrieve_data(id:int):
+    cursor.execute("""SELECT * FROM posts WHERE id = %s""",(str(id),))
+    post=cursor.fetchone()
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="post not found"
+        )
+    return post
 
 @app.post("/createpost")
 def create_posts(data : Post):
@@ -132,26 +108,6 @@ def create_posts(data : Post):
     new_post=cursor.fetchone()
     conn.commit()
     return {"data": new_post}
-
-
-
-
-
-
-@app.get("/posts/{id}")
-def retrieve_data(id:int):
-    cursor.execute("""SELECT * FROM posts WHERE id = %s""",(str(id),))
-    post=cursor.fetchone()
-    if not post:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="post not found"
-        )
-    return post
-
-
-
-
 
 @app.delete("/delete/{id}")
 def delete_data(id: int):
