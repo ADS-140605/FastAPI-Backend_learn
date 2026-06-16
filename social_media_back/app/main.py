@@ -4,7 +4,6 @@ from fastapi.params import Body
 from pydantic import BaseModel
 import pandas as pd
 import json
-from requests import status_codes
 import os
 import psycopg
 from dotenv import load_dotenv
@@ -153,18 +152,14 @@ def retrieve_data(id:int):
 
 
 @app.delete("/delete/{id}")
-def delete_data(id):
-    data=load_data()
-    for post in data:
-        if post.get("id") == id:
-            data.remove(post)
-            dump_data(data)
-            raise HTTPException(status_code=status_codes.HTTP_204_NO_CONTENT, detail="Post deleted successfully")
+def delete_data(id: int):
+    cursor.execute("""DELETE FROM posts where id=%s returning *""",(str(id),))
+    post=cursor.fetchone()
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND , detail="Post not found")
 
-    return {"message": "Post not found"}
-
-
-
+    conn.commit()
+    return {"message": "Post deleted successfully", "deleted_post": post}
 
 
 @app.put("/posts/{id}")
@@ -183,3 +178,5 @@ def update_data(id,update:Update):
             dump_data(data)
             return {"message":"Post updated successfully"}
     return {"message": "Post not found"}
+
+
