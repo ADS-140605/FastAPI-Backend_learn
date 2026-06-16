@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.params import Body
 from pydantic import BaseModel
 import pandas as pd
@@ -12,6 +12,7 @@ from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from .database import SessionLocal, engine
 from . import model
+from sqlalchemy.orm import Session 
 
 model.Base.metadata.create_all(bind=engine)
 def get_db():
@@ -68,7 +69,9 @@ class Post(BaseModel):
 
 
 
-
+@app.get("/sqlalchemy")
+def get_sqlalchemy_data(db: Session = Depends(get_db)):
+    return {"message": "Hello from SQLAlchemy!"}
 
 @app.get("/")
 def root():
