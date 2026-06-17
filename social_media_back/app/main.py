@@ -10,17 +10,11 @@ from dotenv import load_dotenv
 from psycopg.rows import dict_row
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
-from .database import SessionLocal, engine
+from .database import engine,get_db
 from . import model
 from sqlalchemy.orm import Session 
 
 model.Base.metadata.create_all(bind=engine)
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 load_dotenv()
 
@@ -72,6 +66,8 @@ class Post(BaseModel):
 @app.get("/sqlalchemy")
 def get_sqlalchemy_data(db: Session = Depends(get_db)):
     return {"message": "Hello from SQLAlchemy!"}
+
+
 
 @app.get("/")
 def root():
