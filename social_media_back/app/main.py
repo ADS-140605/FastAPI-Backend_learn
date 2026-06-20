@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from psycopg.rows import dict_row
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
-from .database import engine,get_db
+from .database import SessionLocal, engine,get_db
 from . import model
 from sqlalchemy.orm import Session 
 
@@ -68,8 +68,6 @@ def get_sqlalchemy_data(db: Session = Depends(get_db)):
     posts = db.query(model.Post).all()
     return {"data": posts}
 
-
-
 @app.get("/")
 def root():
     return {"message":"Helloooooooooooooooo"}
@@ -99,33 +97,43 @@ def retrieve_data(id:int, db: Session = Depends(get_db)):
     return post
 
 @app.post("/createpost")
-def create_posts(data : Post):
+def create_posts(data : Post, db: Session = Depends(get_db)):
     # original_data=load_data()
     # original_data.append(data.model_dump())
     # dump_data(original_data)
-    cursor.execute("""INSERT INTO posts (
-                   title,
-                   content,
-                   published,    
-                   rating
-                   ) 
+    # cursor.execute("""INSERT INTO posts (
+    #                title,
+    #                content,
+    #                published,    
+    #                rating
+    #                ) 
 
-                   VALUES 
+    #                VALUES 
 
-                   (
-                   %s,%s,%s,%s
-                   ) RETURNING *
-                   """,(data.title, data.content, data.published, data.rating))
-    new_post=cursor.fetchone()
-    conn.commit()
+    #                (
+    #                %s,%s,%s,%s
+    #                ) RETURNING *
+    #                """,(data.title, data.content, data.published, data.rating))
+    # new_post=cursor.fetchone()
+    # conn.commit()
+    new_post = model.Post(
+        title=data.title,
+        content=data.content,
+        published=data.published,
+        rating=data.rating
+    )
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
     return {"data": new_post}
 
 @app.delete("/delete/{id}")
-def delete_data(id: int):
-    cursor.execute("""DELETE FROM posts where id=%s returning *""",(str(id),))
-    post=cursor.fetchone()
+def delete_data(id: int , db: Session = Depends(get_db)):
+    post = db.query(model.Post).filter(model.Post.id == id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND , detail="Post not found")
+    db.delete(post)
+    db.commit()
 
     conn.commit()
     return {"message": "Post deleted successfully", "deleted_post": post}
