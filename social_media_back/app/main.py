@@ -65,7 +65,8 @@ class Post(BaseModel):
 
 @app.get("/sqlalchemy")
 def get_sqlalchemy_data(db: Session = Depends(get_db)):
-    return {"message": "Hello from SQLAlchemy!"}
+    posts = db.query(model.Post).all()
+    return {"data": posts}
 
 
 
