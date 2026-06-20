@@ -75,10 +75,10 @@ def root():
     return {"message":"Helloooooooooooooooo"}
 
 @app.get("/posts")
-def get_posts():
-    data=load_data_db()
-    cursor.execute("""SELECT * FROM posts""")
-    data=cursor.fetchall()
+def get_posts(db: Session = Depends(get_db)):
+    # data=load_data_db()
+    # cursor.execute("""SELECT * FROM posts""")
+    data = db.query(model.Post).all()
     print(data)
     #data=del_col(data,["id"])
     #data=add_col(data,"id")
@@ -87,9 +87,10 @@ def get_posts():
 
 
 @app.get("/posts/{id}")
-def retrieve_data(id:int):
-    cursor.execute("""SELECT * FROM posts WHERE id = %s""",(str(id),))
-    post=cursor.fetchone()
+def retrieve_data(id:int, db: Session = Depends(get_db)):
+    # cursor.execute("""SELECT * FROM posts WHERE id = %s""",(str(id),))
+    # post=cursor.fetchone()
+    post = db.query(model.Post).filter(model.Post.id == id).first()
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
