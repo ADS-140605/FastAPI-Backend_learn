@@ -3,13 +3,11 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.params import Body
 from pydantic import BaseModel
 import pandas as pd
-import json
 import os
 import psycopg
 from dotenv import load_dotenv
 from psycopg.rows import dict_row
-from fastapi import APIRouter, status
-from fastapi.responses import JSONResponse
+from fastapi import status
 from .database import SessionLocal, engine,get_db
 from . import model
 from sqlalchemy.orm import Session 
