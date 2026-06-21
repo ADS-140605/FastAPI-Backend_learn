@@ -158,13 +158,4 @@ def update_data(id: int, update: Update, db: Session = Depends(get_db)):
     db.refresh(post)
     return {"message": "Post updated successfully", "updated_post": post}
 
-            update.published if update.published is not None else existing_post["published"],
-            update.rating if update.rating is not None else existing_post["rating"],
-            str(id),
-        ),
-    )
-    updated_post = cursor.fetchone()
-    conn.commit()
-    return {"message": "Post updated successfully", "updated_post": updated_post}
-
 
