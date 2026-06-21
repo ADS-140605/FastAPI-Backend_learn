@@ -140,20 +140,24 @@ def delete_data(id: int , db: Session = Depends(get_db)):
 
 
 @app.put("/posts/{id}")
-def update_data(id: int, update: Update):
-    cursor.execute("""SELECT * FROM posts WHERE id=%s""", (str(id),))
-    existing_post = cursor.fetchone()
-    if not existing_post:
+def update_data(id: int, update: Update, db: Session = Depends(get_db)):
+    post = db.query(model.Post).filter(model.Post.id == id).first()
+    if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    # Update the post attributes
+    if update.title is not None:
+        post.title = update.title
+    if update.content is not None:
+        post.content = update.content
+    if update.published is not None:
+        post.published = update.published
+    if update.rating is not None:
+        post.rating = update.rating
 
-    cursor.execute(
-        """UPDATE posts
-           SET title=%s, content=%s, published=%s, rating=%s
-           WHERE id=%s
-           RETURNING *""",
-        (
-            update.title if update.title is not None else existing_post["title"],
-            update.content if update.content is not None else existing_post["content"],
+    db.commit()
+    db.refresh(post)
+    return {"message": "Post updated successfully", "updated_post": post}
+
             update.published if update.published is not None else existing_post["published"],
             update.rating if update.rating is not None else existing_post["rating"],
             str(id),
